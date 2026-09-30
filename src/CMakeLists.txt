@@ -1,5 +1,5 @@
 add_executable(${ProjectName}
-        main.cpp
+        main1.cpp
         critical_section.cpp
         Fmutex.cpp
         Fmutex.h
@@ -34,6 +34,13 @@ add_executable(${ProjectName}
 #        display/ssd1306.h
         display/ssd1306os.h
         display/ssd1306os.cpp
+        ui_task.cpp
+        debug_task.cpp
+        system_state.cpp
+        control_task.cpp
+        encoder.cpp
+        relay.cpp
+        pressure_sensor.cpp
 )
 
 target_include_directories(${ProjectName} PRIVATE
