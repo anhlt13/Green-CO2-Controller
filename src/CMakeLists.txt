@@ -34,6 +34,7 @@ add_executable(${ProjectName}
 #        display/ssd1306.h
         display/ssd1306os.h
         display/ssd1306os.cpp
+        sensor_task.cpp
         ui_task.cpp
         debug_task.cpp
         system_state.cpp
