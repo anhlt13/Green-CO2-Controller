@@ -106,7 +106,7 @@ void test_task(void *param) {
             int rc = ipstack.connect(HTTP_SERVER, 80);
             if (rc == 0) {
                 ipstack.write((unsigned char *) (req), strlen(req), 1000);
-                auto rv = ipstack.read(buffer, BUFSIZE, 2000);
+                auto rv = ipstack.read(buffer, BU FSIZE, 2000);
                 buffer[rv] = 0;
                 printf("rv=%d\n%s\n", rv, buffer);
                 ipstack.disconnect();

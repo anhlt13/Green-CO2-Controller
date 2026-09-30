@@ -10,6 +10,7 @@
 #include "hardware/gpio.h"
 #include "PicoOsUart.h"
 #include "ssd1306.h"
+#include "sensor_task.h"
 
 
 #include "hardware/timer.h"
@@ -64,7 +65,7 @@ int main()
     xTaskCreate(debugTaskFunction, "Debug", STACK_DEBUG, nullptr, PRIORITY_DEBUG, nullptr);
     xTaskCreate(uiTaskFunction, "UI", STACK_UI, nullptr, PRIORITY_UI, nullptr);
     xTaskCreate(controlTaskFunction, "Control", STACK_CONTROL, nullptr,PRIORITY_CONTROL, &controlTaskHandle);
-    //xTaskCreate(sensor_task, "Sensor", 1024, nullptr,PRIORITY_SENSOR, nullptr);
+    xTaskCreate(sensor_task, "Sensor", 1024, nullptr,PRIORITY_SENSOR, nullptr);
     vTaskStartScheduler();
 
     for (;;) {}

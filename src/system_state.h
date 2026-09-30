@@ -20,7 +20,9 @@ typedef struct
     float relativeHumidity;
     float temperature;
     float pressure;
+    uint8_t fanPulseCount;
     uint16_t fanSpeedPercent;
+    bool fanRunning;
     float co2Setpoint;
     bool valveIsOpen;
 } SharedState_t;

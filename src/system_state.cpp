@@ -19,6 +19,7 @@ void systemStateInit(void)
 {
     sharedStateMutex = xSemaphoreCreateMutex();
     eepromMutex = xSemaphoreCreateMutex();
+    i2c1Mutex = xSemaphoreCreateMutex();
 
     encoderQueue = xQueueCreate(10,sizeof(EncoderEvent_t));
     fanSpeedQueue = xQueueCreate(10,sizeof(uint16_t));
