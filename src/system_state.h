@@ -43,5 +43,7 @@ extern TaskHandle_t controlTaskHandle;
 //mutex
 extern SemaphoreHandle_t eepromMutex;
 extern SemaphoreHandle_t sharedStateMutex;
+extern SemaphoreHandle_t i2c1Mutex;
 
+void systemStateInit(void);
 #endif //RP2040_FREERTOS_IRQ_SYSTEM_STATE_H

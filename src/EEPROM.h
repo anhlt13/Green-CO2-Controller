@@ -27,7 +27,7 @@ void eeprom_log_init();
 void eeprom_log_write(const char* message);
 void eeprom_log_read_and_print();
 void eeprom_log_erase();
-bool eeprom_save_setpoint(float setpoint)
-bool eeprom_load_setpoint(float* setpoint)
+bool eeprom_save_setpoint(float setpoint);
+bool eeprom_load_setpoint(float* setpoint);
 
 #endif //RP2040_FREERTOS_IRQ_EEPROM_H

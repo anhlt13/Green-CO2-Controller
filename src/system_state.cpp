@@ -13,6 +13,7 @@ TaskHandle_t controlTaskHandle;
 
 SemaphoreHandle_t eepromMutex;
 SemaphoreHandle_t sharedStateMutex;
+SemaphoreHandle_t i2c1Mutex;
 
 void systemStateInit(void)
 {

@@ -20,6 +20,12 @@ struct DebugMessage_t {
 
 static QueueHandle_t debugQueue = nullptr;
 
+void debugInit(void)
+{
+    debugQueue = xQueueCreate(20, sizeof(DebugMessage_t));
+    vQueueAddToRegistry(debugQueue, "DebugQueue");
+}
+
 void debugLog(const char *format, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 {
     if (debugQueue == nullptr) {
@@ -32,9 +38,6 @@ void debugLog(const char *format, uint32_t arg1, uint32_t arg2, uint32_t arg3)
 void debugTaskFunction(void *pvParameters)
 {
     (void)pvParameters;
-
-    debugQueue = xQueueCreate(20, sizeof(DebugMessage_t));
-    vQueueAddToRegistry(debugQueue, "DebugQueue");
 
     DebugMessage_t msg;
     for (;;) {

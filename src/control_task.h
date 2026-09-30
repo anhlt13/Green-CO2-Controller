@@ -7,7 +7,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
-
+static void requestFanSpeed(uint16_t percent);
 void controlTaskFunction(void *param);
 
 #endif //RP2040_FREERTOS_IRQ_CONTROL_TASK_H

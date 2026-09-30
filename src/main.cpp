@@ -33,6 +33,7 @@ extern "C" {
 #include "ui_task.h"
 #include "control_task.h"
 #include "debug_task.h"
+//#include "sensor_task.h"
 
 static constexpr UBaseType_t PRIORITY_CONTROL = tskIDLE_PRIORITY + 4;
 static constexpr UBaseType_t PRIORITY_SENSOR = tskIDLE_PRIORITY + 3;
@@ -57,10 +58,13 @@ int main()
 
     relayInit();
 
+    systemStateInit();
+    debugInit();
+
     xTaskCreate(debugTaskFunction, "Debug", STACK_DEBUG, nullptr, PRIORITY_DEBUG, nullptr);
     xTaskCreate(uiTaskFunction, "UI", STACK_UI, nullptr, PRIORITY_UI, nullptr);
     xTaskCreate(controlTaskFunction, "Control", STACK_CONTROL, nullptr,PRIORITY_CONTROL, &controlTaskHandle);
-    xTaskCreate(sensorTaskFunction, "Sensor", 1024, nullptr,PRIORITY_SENSOR, nullptr);
+    //xTaskCreate(sensor_task, "Sensor", 1024, nullptr,PRIORITY_SENSOR, nullptr);
     vTaskStartScheduler();
 
     for (;;) {}

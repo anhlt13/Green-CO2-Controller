@@ -4,7 +4,7 @@
 
 #include "pressure_sensor.h"
 
-static constexpr float SPD610_125PA_SCALE_FACTOR =  240.0f;
+static constexpr float SDP610_125PA_SCALE_FACTOR =  240.0f;
 
 bool readPressurePa(float* outPa)
 {
@@ -16,14 +16,14 @@ bool readPressurePa(float* outPa)
     }
 
     uint8_t buf[2];
-    int readBytes = i2c_read_blocking(ic21, SDP610_I2C_ADDR, buf, 2, false);
+    int readBytes = i2c_read_blocking(i2c1, SDP610_I2C_ADDR, buf, 2, false);
     if (readBytes !=2)
     {
         return false;
     }
 
-    int16_t raw = (int16_t)((buf[0]<<8)||buf[1]);
+    int16_t raw = (int16_t)((buf[0]<<8)|buf[1]);
 
-    *outPa = (float)raw/SPD610_125PA_SCALE_FACTOR;
+    *outPa = (float)raw/SDP610_125PA_SCALE_FACTOR;
     return true;
 }

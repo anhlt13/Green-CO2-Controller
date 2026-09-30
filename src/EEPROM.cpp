@@ -94,7 +94,7 @@ void eeprom_log_init()
 
 void eeprom_log_write(const char* message) {
     size_t len = strlen(message);
-    if (len == 0 || len > LOG_MAX_STR_LEN) return;
+    if (len == 0 || len >= LOG_MAX_STR_LEN) return;
 
     int slot = find_next_free_slot();
     if (slot == -1) {
@@ -136,7 +136,7 @@ void eeprom_log_erase() {
 
 bool eeprom_save_setpoint(float setpoint)
 {
-    uint16_t buf[6];
+    uint8_t buf[6];
     memcpy(buf, &setpoint, sizeof(float));
     uint16_t crc = crc16(buf, sizeof(float));
     buf[4] = crc >> 8;

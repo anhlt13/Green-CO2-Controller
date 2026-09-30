@@ -1,5 +1,5 @@
 add_executable(${ProjectName}
-        main1.cpp
+        main.cpp
         critical_section.cpp
         Fmutex.cpp
         Fmutex.h
@@ -30,11 +30,11 @@ add_executable(${ProjectName}
         display/framebuf.h
         display/mono_vlsb.cpp
         display/mono_vlsb.h
-#        display/ssd1306.cpp
-#        display/ssd1306.h
-        display/ssd1306os.h
-        display/ssd1306os.cpp
-        sensor_task.cpp
+       display/ssd1306.cpp
+        display/ssd1306.h
+#        display/ssd1306os.h
+#        display/ssd1306os.cpp
+#        sensor_task.cpp
         ui_task.cpp
         debug_task.cpp
         system_state.cpp
@@ -42,6 +42,7 @@ add_executable(${ProjectName}
         encoder.cpp
         relay.cpp
         pressure_sensor.cpp
+        EEPROM.cpp
 )
 
 target_include_directories(${ProjectName} PRIVATE

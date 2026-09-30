@@ -160,23 +160,24 @@ void uiTaskFunction(void* param)
                 {
                     menuSelectedIndex = 0;
                 }
-                if (swPressed)
+
+            }
+            if (swPressed)
+            {
+                if (menuSelectedIndex == 0)
                 {
-                    if (menuSelectedIndex == 0)
-                    {
-                        screen = SCREEN_MAIN;
-                    }
-                    else if (menuSelectedIndex == 1)
-                    {
-                        xSemaphoreTake(sharedStateMutex, portMAX_DELAY);
-                        pendingSetpoint = systemState.co2Setpoint;
-                        xSemaphoreGive(sharedStateMutex);
-                        screen = SCREEN_SETPOINT;
-                    }
-                    else if (menuSelectedIndex == 2)
-                    {
-                        screen = SCREEN_NETWORK;
-                    }
+                    screen = SCREEN_MAIN;
+                }
+                else if (menuSelectedIndex == 1)
+                {
+                    xSemaphoreTake(sharedStateMutex, portMAX_DELAY);
+                    pendingSetpoint = systemState.co2Setpoint;
+                    xSemaphoreGive(sharedStateMutex);
+                    screen = SCREEN_SETPOINT;
+                }
+                else if (menuSelectedIndex == 2)
+                {
+                    screen = SCREEN_NETWORK;
                 }
             }
             break;
@@ -218,7 +219,7 @@ void uiTaskFunction(void* param)
         }
 
         TickType_t now = xTaskGetTickCount();
-        if (hasEvent = pdTRUE || swPressed || (now-lastDrawTime)>pdMS_TO_TICKS(500))
+        if (hasEvent == pdTRUE || swPressed || (now-lastDrawTime)>pdMS_TO_TICKS(500))
         {
             lastDrawTime = now;
             SharedState_t snapshot;
@@ -226,6 +227,7 @@ void uiTaskFunction(void* param)
             snapshot = systemState;
             xSemaphoreGive(sharedStateMutex);
 
+            xSemaphoreTake(i2c1Mutex, portMAX_DELAY);
             switch (screen)
             {
             case SCREEN_MAIN:
@@ -241,6 +243,7 @@ void uiTaskFunction(void* param)
                 drawNetworkScreen(oled);
                 break;
             }
+            xSemaphoreGive(i2c1Mutex);
         }
     }
 }
