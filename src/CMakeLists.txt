@@ -44,6 +44,8 @@ add_executable(${ProjectName}
         relay.cpp
         pressure_sensor.cpp
         EEPROM.cpp
+        network_task.cpp
+        ipstack/IPStack.cpp
 )
 
 target_include_directories(${ProjectName} PRIVATE

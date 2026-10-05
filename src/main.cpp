@@ -11,6 +11,7 @@
 #include "PicoOsUart.h"
 #include "ssd1306.h"
 #include "sensor_task.h"
+#include "network_task.h"
 
 
 #include "hardware/timer.h"
@@ -35,7 +36,7 @@ extern "C" {
 #include "control_task.h"
 #include "debug_task.h"
 //#include "sensor_task.h"
-
+static constexpr UBaseType_t PRIORITY_NETWORK = tskIDLE_PRIORITY + 5;
 static constexpr UBaseType_t PRIORITY_CONTROL = tskIDLE_PRIORITY + 4;
 static constexpr UBaseType_t PRIORITY_SENSOR = tskIDLE_PRIORITY + 3;
 static constexpr UBaseType_t PRIORITY_UI = tskIDLE_PRIORITY + 2;
@@ -66,6 +67,7 @@ int main()
     xTaskCreate(uiTaskFunction, "UI", STACK_UI, nullptr, PRIORITY_UI, nullptr);
     xTaskCreate(controlTaskFunction, "Control", STACK_CONTROL, nullptr,PRIORITY_CONTROL, &controlTaskHandle);
     xTaskCreate(sensor_task, "Sensor", 1024, nullptr,PRIORITY_SENSOR, nullptr);
+    xTaskCreate(network_task, "Network", 4096, nullptr,PRIORITY_NETWORK, nullptr);
     vTaskStartScheduler();
 
     for (;;) {}

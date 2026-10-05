@@ -26,19 +26,19 @@ void sensor_task(void* parameters)
    while (true)
    {
       co2 = co2_data.read();
-      printf("co2 = %d ppm\n", co2);
+      //printf("co2 = %d ppm\n", co2);
       vTaskDelay(pdMS_TO_TICKS(10));
 
       humidity = static_cast<float>(humid_data.read()) / 10.0f;
-      printf("humidity = %2.f %% RH\n", humidity);
+      //printf("humidity = %2.f %% RH\n", humidity);
       vTaskDelay(pdMS_TO_TICKS(10));
 
       temperature = static_cast<float>(temp_data.read()) / 10.0f;
-      printf("temperature = %2.f C\n", temperature);
+      //printf("temperature = %2.f C\n", temperature);
       vTaskDelay(pdMS_TO_TICKS(10));
 
       FanCounter = fan_counter.read();
-       printf("fan counter = %d\n", FanCounter);
+       //printf("fan counter = %d\n", FanCounter);
 
        if (FanCounter > 0)
        {

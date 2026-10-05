@@ -1,4 +1,5 @@
-//
+
+   //
 // Created by Keijo Länsikunnas on 12.2.2024.
 //
 #include <cstring>
@@ -20,12 +21,12 @@ IPStack::IPStack(const char *ssid, const char *pw) : tcp_pcb{nullptr}, dropped{0
     }
     cyw43_arch_enable_sta_mode();
 
-    DEBUG_printf("Connecting to Wi-Fi...\n");
-    if (cyw43_arch_wifi_connect_timeout_ms(ssid, pw, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
-        DEBUG_printf("Failed to connect.\n");
-    } else {
-        DEBUG_printf("Connected.\n");
-    }
+    // DEBUG_printf("Connecting to Wi-Fi...\n");
+    // if (cyw43_arch_wifi_connect_timeout_ms(ssid, pw, CYW43_AUTH_WPA2_AES_PSK, 10000)) {
+    //     DEBUG_printf("Failed to connect.\n");
+    // } else {
+    //     DEBUG_printf("Connected.\n");
+    // }
 
 }
 
@@ -33,36 +34,65 @@ int IPStack::connect(uint32_t hostname, int port) {
     return ERR_ARG;
 }
 
-int IPStack::connect(const char *hostname, int port) {
-    // check if the hostname requires DNS resolution
-    if (!ip4addr_aton(hostname, &remote_addr)) {
-        // dns not implemented yet
-        return ERR_ARG;
+
+void IPStack::connect_to_wifi(const char* ssid, const char* pw)
+{
+    connected = false;
+    cyw43_wifi_leave(&cyw43_state, CYW43_ITF_STA);
+    DEBUG_printf("[WIFI] Connecting to WiFI...\n");
+    const int max_retries = 3;
+    int attempt = 0;
+    while (attempt < max_retries && !connected)
+    {
+        attempt++;
+        DEBUG_printf("[WIFI] Wifi connection attempt number %d\n", attempt);
+        if (cyw43_arch_wifi_connect_timeout_ms(ssid, pw, CYW43_AUTH_WPA2_AES_PSK, 10000))
+        {
+            if (attempt < max_retries)
+            {
+                DEBUG_printf("[WIFI] Failed to connect. Reconnecting...\n");
+            }else
+            {
+                DEBUG_printf("[WIFI] Connect to Wi-Fi failed.\n");
+            }
+        }else
+        {
+            connected = true;
+            DEBUG_printf("[WIFI] Connected successfully!\n");
+        }
     }
-    // open a socket connection
-    DEBUG_printf("Connecting to %s port %u\n", ip4addr_ntoa(&remote_addr), port);
-    tcp_pcb = tcp_new_ip_type(IP_GET_TYPE(remote_addr));
-    if (!tcp_pcb) {
-        DEBUG_printf("failed to create pcb\n");
-        return ERR_MEM;
     }
+//  int IPStack::connect(const char *hostname, int port) {
+//     // check if the hostname requires DNS resolution
+//     if (!ip4addr_aton(hostname, &remote_addr)) {
+//         // dns not implemented yet
+//         return ERR_ARG;
+//     }
+//     // open a socket connection
+//     DEBUG_printf("Connecting to %s port %u\n", ip4addr_ntoa(&remote_addr), port);
+//     tcp_pcb = tcp_new_ip_type(IP_GET_TYPE(remote_addr));
+//     if (!tcp_pcb) {
+//         DEBUG_printf("failed to create pcb\n");
+//         return ERR_MEM;
+//     }
+//
+//     tcp_arg(tcp_pcb, this);
+//     tcp_poll(tcp_pcb, IPStack::tcp_client_poll, POLL_TIME_S * 2);
+//     tcp_sent(tcp_pcb, IPStack::tcp_client_sent);
+//     tcp_recv(tcp_pcb, IPStack::tcp_client_recv);
+//     tcp_err(tcp_pcb, IPStack::tcp_client_err);
+//
+//     // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
+//     // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
+//     // these calls are a no-op and can be omitted, but it is a good practice to use them in
+//     // case you switch the cyw43_arch type later.
+//     cyw43_arch_lwip_begin();
+//     err_t err = tcp_connect(tcp_pcb, &remote_addr, port, IPStack::tcp_client_connected);
+//     cyw43_arch_lwip_end();
+//
+//     return err;
+// }
 
-    tcp_arg(tcp_pcb, this);
-    tcp_poll(tcp_pcb, IPStack::tcp_client_poll, POLL_TIME_S * 2);
-    tcp_sent(tcp_pcb, IPStack::tcp_client_sent);
-    tcp_recv(tcp_pcb, IPStack::tcp_client_recv);
-    tcp_err(tcp_pcb, IPStack::tcp_client_err);
-
-    // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-    // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-    // these calls are a no-op and can be omitted, but it is a good practice to use them in
-    // case you switch the cyw43_arch type later.
-    cyw43_arch_lwip_begin();
-    err_t err = tcp_connect(tcp_pcb, &remote_addr, port, IPStack::tcp_client_connected);
-    cyw43_arch_lwip_end();
-
-    return err;
-}
 
 /** Function prototype for tcp sent callback functions. Called when sent data has
  * been acknowledged by the remote side. Use it to free corresponding resources.
