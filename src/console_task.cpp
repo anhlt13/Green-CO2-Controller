@@ -33,9 +33,9 @@ static void handleCommand(char *line)
         xSemaphoreTake(eepromMutex, portMAX_DELAY);
         bool ok = eeprom_save_string(NETWORK_SSID_ADDR, value, EEPROM_SSID_MAX_LEN);
         xSemaphoreGive(eepromMutex);
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         printf(ok ? "[CONSOLE] SSID saved.\n" : "[CONSOLE] Failed - value too long?\n");
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
     }
     // "set password <value>"
     else if (strncmp(line, "set password ", 13) == 0) {
@@ -43,15 +43,15 @@ static void handleCommand(char *line)
         xSemaphoreTake(eepromMutex, portMAX_DELAY);
         bool ok = eeprom_save_string(NETWORK_PASS_ADDR, value, EEPROM_PASS_MAX_LEN);
         xSemaphoreGive(eepromMutex);
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         printf(ok ? "[CONSOLE] Password saved.\n" : "[CONSOLE] Failed - value too long?\n");
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
     }
     else if (strcmp(line, "connect") == 0)
     {
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         printf("[CONSOLE] Reconnecting with saved config...\n");
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         xTaskNotifyGive(networkTaskHandle);
     }
     else if (strcmp(line, "show") == 0) {
@@ -76,17 +76,17 @@ static void handleCommand(char *line)
         eeprom_save_string(NETWORK_PASS_ADDR, "", EEPROM_PASS_MAX_LEN);
         eeprom_save_setpoint(800.0f);
         xSemaphoreGive(eepromMutex);
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         printf("[CONSOLE] Factory settings restored.\n");
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
     }
     else if (strcmp(line, "help") == 0 || strlen(line) == 0) {
         printHelp();
     }
     else {
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
         printf("[CONSOLE] Unknown command. Type 'help'.\n");
-        printf("------------------------------------------------------------");
+        printf("------------------------------------------------------------\n");
     }
 }
 

@@ -41,8 +41,7 @@ pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl\n\
 MrY=\n\
 -----END CERTIFICATE-----\n"
 
-#define SSID "Test"
-#define PASSWORD "1234578"
+
 void network_task(void *pvParameters);
 extern xTaskHandle networkTaskHandle;
 #endif //RP2040_FREERTOS_IRQ_NETWORK_TASK_H
