@@ -43,5 +43,10 @@ MrY=\n\
 
 
 void network_task(void *pvParameters);
+enum NetworkCommand
+{
+    NETWORK_CONNECT,
+    NETWORK_DISCONNECT
+};
 extern xTaskHandle networkTaskHandle;
 #endif //RP2040_FREERTOS_IRQ_NETWORK_TASK_H

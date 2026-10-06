@@ -5,7 +5,7 @@
 #ifndef RP2040_FREERTOS_IRQ_PICOOSUART_H
 #define RP2040_FREERTOS_IRQ_PICOOSUART_H
 
-#include <hardware/uart.h>
+#include <hardware/iuart.h>
 #include <hardware/irq.h>
 #include <string>
 #include "FreeRTOS.h"

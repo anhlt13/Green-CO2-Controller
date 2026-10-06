@@ -308,3 +308,20 @@ int IPStack::disconnect() {
 }
 
 
+void IPStack::disconnect_to_wifi()
+{
+    disconnected = true;
+
+    int result = disconnect();
+
+    if (result != ERR_OK)
+    {
+        DEBUG_printf("TCP disconnect failed: %d\n", result);
+    }
+
+    cyw43_arch_lwip_begin();
+    cyw43_wifi_leave(&cyw43_state, CYW43_ITF_STA);
+    cyw43_arch_lwip_end();
+}
+
+

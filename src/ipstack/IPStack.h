@@ -20,6 +20,7 @@ public:
     int connect(const char *hostname, int port);
     int connect(uint32_t hostname, int port);
     void connect_to_wifi(const char *ssid, const char *pw);
+    void disconnect_to_wifi();
     int read(unsigned char *buffer, int len, int timeout);
     int write(unsigned char *buffer, int len, int timeout);
     int disconnect();
@@ -41,6 +42,7 @@ private:
     uint16_t wr; // write index
     uint16_t rd; // read index
     bool connected;
+    bool disconnected;
 };
 
 
