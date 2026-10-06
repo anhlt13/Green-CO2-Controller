@@ -55,7 +55,7 @@ static err_t tls_client_connected(void *arg, struct altcp_pcb *pcb, err_t err) {
         return tls_client_close(state);
     }
 
-    printf("connected to server, sending request\n");
+    //printf("connected to server, sending request\n");
     err = altcp_write(state->pcb, state->http_request, strlen(state->http_request), TCP_WRITE_FLAG_COPY);
     if (err != ERR_OK) {
         printf("error writing data, err=%d", err);
@@ -82,7 +82,7 @@ static void tls_client_err(void *arg, err_t err) {
 static err_t tls_client_recv(void *arg, struct altcp_pcb *pcb, struct pbuf *p, err_t err) {
     TLS_CLIENT_T *state = (TLS_CLIENT_T*)arg;
     if (!p) {
-        printf("connection closed\n");
+        //printf("connection closed\n");
         return tls_client_close(state);
     }
 
@@ -97,7 +97,7 @@ static err_t tls_client_recv(void *arg, struct altcp_pcb *pcb, struct pbuf *p, e
         pbuf_copy_partial(p, buf, p->tot_len, 0);
         buf[p->tot_len] = 0;
 
-        printf("***\nnew data received from server:\n***\n\n%s\n", buf);
+        //printf("***\nnew data received from server:\n***\n\n%s\n", buf);
         free(buf);
 
         altcp_recved(pcb, p->tot_len);
@@ -114,7 +114,7 @@ static void tls_client_connect_to_server_ip(const ip_addr_t *ipaddr, TLS_CLIENT_
     //u16_t port = 21883; // Joe's secure MQTT
     //u16_t port = 8883; // secure MQTT
 
-    printf("connecting to server IP %s port %d\n", ipaddr_ntoa(ipaddr), port);
+    //printf("connecting to server IP %s port %d\n", ipaddr_ntoa(ipaddr), port);
     err = altcp_connect(state->pcb, ipaddr, port, tls_client_connected);
     if (err != ERR_OK)
     {

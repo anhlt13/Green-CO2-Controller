@@ -20,6 +20,7 @@ static void printHelp()
     printf("set ssid <value>      - Save WiFi SSID to EEPROM\n");
     printf("set password <value>  - Save WiFi password to EEPROM\n");
     printf("connect               - Connect to Wifi with saved configuration\n");
+    printf("disconnect            - Disconnect wifi\n");
     printf("show                  - display current configuration\n");
     printf("factory reset         - delete SSID/password, set setpoint to default\n");
     printf("help                  - command instruction\n");
@@ -52,7 +53,13 @@ static void handleCommand(char *line)
         printf("------------------------------------------------------------");
         printf("[CONSOLE] Reconnecting with saved config...\n");
         printf("------------------------------------------------------------");
-        xTaskNotifyGive(networkTaskHandle);
+        xTaskNotify(networkTaskHandle,NETWORK_CONNECT,eSetValueWithOverwrite);
+    }
+    else if (strcmp(line, "disconnect") == 0)
+    {
+        xTaskNotify(networkTaskHandle,NETWORK_DISCONNECT,eSetValueWithOverwrite
+    );
+
     }
     else if (strcmp(line, "show") == 0) {
         char ssid[EEPROM_SSID_MAX_LEN] = {0};

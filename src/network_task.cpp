@@ -15,6 +15,7 @@ extern "C"
 static char ssidBuffer[EEPROM_SSID_MAX_LEN]     = {0};
 static char passwordBuffer[EEPROM_PASS_MAX_LEN] = {0};
 xTaskHandle networkTaskHandle = nullptr;
+QueueHandle_t networkCommandQueue;
 
 static void loadCredentials()
 {
@@ -23,6 +24,7 @@ static void loadCredentials()
     if (!eeprom_load_string(NETWORK_PASS_ADDR, passwordBuffer, EEPROM_PASS_MAX_LEN)) passwordBuffer[0] = 0;
     xSemaphoreGive(eepromMutex);
 }
+
 
 static void clearTalkBackCommands(const uint8_t *certificate)
 {
@@ -61,15 +63,15 @@ void sendToThinkSpeak()
 {
     static char body[256];
     float co2 = systemState.measuredCo2;
-    float temperature = systemState.temperature;
     float humidity = systemState.relativeHumidity;
+    float temperature = systemState.temperature;
     uint16_t fanSpeed = systemState.fanSpeedPercent;
     float co2Setpoint = systemState.co2Setpoint;
 
     snprintf(body, sizeof(body),"api_key=" API_KEY "&field1=%.1f""&field2=%.1f""&field3=%.1f""&field4=%u""&field5=%.1f",
              co2,
-             temperature,
              humidity,
+             temperature,
              fanSpeed,
              co2Setpoint);
 
@@ -171,14 +173,17 @@ void receiveFromThinkSpeak()
 void network_task(void *pvParameters)
 {
     loadCredentials();
-
     IPStack ipstack(ssidBuffer, passwordBuffer);
 
-    if (ssidBuffer[0]) {
+    if (ssidBuffer[0])
+    {
         ipstack.connect_to_wifi(ssidBuffer, passwordBuffer);
-    } else {
+    }
+    else
+    {
         printf("[Network] No WiFi config saved. Use 'set ssid', 'set password', then 'connect'.\n");
     }
+
     while (true)
     {
         if (cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA) == CYW43_LINK_UP)
@@ -187,14 +192,32 @@ void network_task(void *pvParameters)
             receiveFromThinkSpeak();
         }
 
-        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5000)) > 0)
+        uint32_t command;
+
+        if (xTaskNotifyWait(0,0,&command,pdMS_TO_TICKS(5000)) == pdTRUE)
         {
-            loadCredentials();
-            if (ssidBuffer[0]) {
-                ipstack.connect_to_wifi(ssidBuffer, passwordBuffer);
-            } else {
-                printf("[Network] SSID not set.\n");
+            if (command == NETWORK_CONNECT)
+            {
+                loadCredentials();
+                if (ssidBuffer[0])
+                {
+                    printf("[Network] Connecting with saved configuration...\n");
+                    ipstack.connect_to_wifi(ssidBuffer, passwordBuffer);
+                }
+                else
+                {
+                    printf("[Network] SSID not set.\n");
+                }
+            }
+            else if (command == NETWORK_DISCONNECT)
+            {
+                printf("[Network] Disconnecting WiFi...\n");
+
+                ipstack.disconnect_to_wifi();
+
+                printf("[Network] WiFi disconnected.\n");
             }
         }
     }
 }
+                                                            
