@@ -23,6 +23,10 @@ typedef struct TLS_CLIENT_T_ {
     int error;
     const char *http_request;
     int timeout;
+    char *out_buffer;
+    size_t out_max_len;
+    size_t out_current_len;
+
 } TLS_CLIENT_T;
 
 static struct altcp_tls_config *tls_config = NULL;
@@ -97,6 +101,18 @@ static err_t tls_client_recv(void *arg, struct altcp_pcb *pcb, struct pbuf *p, e
         pbuf_copy_partial(p, buf, p->tot_len, 0);
         buf[p->tot_len] = 0;
 
+        if (state->out_buffer != NULL)
+        {
+            if (state->out_current_len + p->tot_len < state->out_max_len)
+            {
+                memcpy(state->out_buffer + state->out_current_len, buf, p->tot_len);
+                state->out_current_len += p->tot_len;
+                state->out_buffer[state->out_current_len] = '\0'; // Đảm bảo kết thúc chuỗi
+            } else {
+                printf("Warning: Response buffer too small!\n");
+            }
+
+        }
         //printf("***\nnew data received from server:\n***\n\n%s\n", buf);
         free(buf);
 
@@ -196,7 +212,7 @@ static void tlsdebug(void *ctx, int level, const char *file, int line, const cha
     fputs(message, stdout);
 }
 
-bool run_tls_client_test(const uint8_t *cert, size_t cert_len, const char *server, const char *request, int timeout) {
+bool run_tls_client_test(const uint8_t *cert, size_t cert_len, const char *server, const char *request, int timeout, char *out_buf, size_t max_len) {
 
     //mbedtls_debug_set_threshold(4); // requires #define MBEDTLS_DEBUG_C in mbedtls_xonfig.h
 
@@ -215,6 +231,10 @@ bool run_tls_client_test(const uint8_t *cert, size_t cert_len, const char *serve
     }
     state->http_request = request;
     state->timeout = timeout;
+    state->out_buffer = out_buf;
+    state->out_max_len = max_len;
+    state->out_current_len = 0;
+    if (out_buf) out_buf[0] = '\0';
     if (!tls_client_open(server, state)) {
         return false;
     }

@@ -64,7 +64,7 @@ static void drawMainScreen(ssd1306os &oled, const SharedState_t &state)
     snprintf(line, sizeof(line), "T:   %.1f C", state.temperature);
     oled.text(line, 0, 16);
 
-    snprintf(line, sizeof(line), "Pres: %.1f Pa", state.pressure);
+    snprintf(line, sizeof(line), "Pres: %.2f Pa", state.pressure);
     oled.text(line, 0, 24);
 
     snprintf(line, sizeof(line), "Fan: %u %%", state.fanSpeedPercent);

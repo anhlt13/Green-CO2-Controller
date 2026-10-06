@@ -135,6 +135,11 @@ void receiveFromThinkSpeak()
                                 if (newSetPoint >= 0.0f && newSetPoint <= 1500.0f) {
                                     if (xQueueSend(cloudSetPointQueue, &newSetPoint, 0) == pdPASS) {
                                         printf("[RESPONSE FROM CLOUD] TalkBack: new CO2 setpoint %.1f ppm sent to Controller\n", newSetPoint);
+                                        xSemaphoreTake(eepromMutex, portMAX_DELAY);
+                                        systemState.co2Setpoint = newSetPoint;
+                                        bool ok = eeprom_save_setpoint(newSetPoint);
+                                        xSemaphoreGive(eepromMutex);
+                                        if (!ok) printf("[Network] Failed to save setpoint to EEPROM\n");
                                     } else {
                                         printf("TalkBack: setpoint queue is full\n");
                                     }
@@ -157,9 +162,20 @@ void receiveFromThinkSpeak()
                     float newSetPoint;
                     if (sscanf(body, "%f", &newSetPoint) == 1)
                     {
-                        xQueueSend(cloudSetPointQueue, &newSetPoint, 0);
                         printf(">> Parsed Non-Chunked Value: %.1f\n", newSetPoint);
-
+                        if (newSetPoint >= 0.0f && newSetPoint <= 1500.0f) {
+                            if (xQueueSend(cloudSetPointQueue, &newSetPoint, 0) == pdPASS) {
+                                xSemaphoreTake(eepromMutex, portMAX_DELAY);
+                                systemState.co2Setpoint = newSetPoint;
+                                bool ok = eeprom_save_setpoint(newSetPoint);
+                                xSemaphoreGive(eepromMutex);
+                                if (!ok) printf("[Network] Failed to save setpoint to EEPROM\n");
+                            } else {
+                                printf("TalkBack: setpoint queue is full\n");
+                            }
+                        } else {
+                            printf("TalkBack: invalid setpoint %.1f ppm\n", newSetPoint);
+                        }
                     }
                 }
             }
