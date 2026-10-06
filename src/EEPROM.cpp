@@ -7,7 +7,7 @@
 #include <cstdio>
 
 
-bool eeprom_write_multi(uint16_t addr, const uint8_t* data, size_t len) {
+bool eeprom_write_page(uint16_t addr, const uint8_t* data, size_t len) {
     if (len == 0 || len > 64) return false;
 
     uint8_t buf[66];
@@ -19,6 +19,20 @@ bool eeprom_write_multi(uint16_t addr, const uint8_t* data, size_t len) {
     sleep_ms(5);  // EEPROM write cycle time
     return ret == static_cast<int>(len + 2);
 }
+
+bool eeprom_write_multi(uint16_t addr, const uint8_t* data, size_t len)
+{
+    while (len > 0) {
+        size_t room  = LOG_ENTRY_SIZE - (addr % LOG_ENTRY_SIZE);
+        size_t chunk = len < room ? len : room;
+        if (!eeprom_write_page(addr, data, chunk)) return false;
+        addr += chunk;
+        data += chunk;
+        len  -= chunk;
+    }
+    return true;
+}
+
 
 bool eeprom_read_multi(uint16_t addr, uint8_t* buffer, size_t len) {
     if (len == 0)
@@ -161,3 +175,34 @@ bool eeprom_load_setpoint(float* setpoint)
     return true;
 }
 
+bool eeprom_save_string(uint16_t addr, const char* str, size_t maxLen) {
+    if (maxLen + 2 > 64) return false;
+
+    size_t len = strlen(str);
+    if (len >= maxLen) return false;
+
+    uint8_t buf[64] = {0};
+    memcpy(buf, str, len);
+    buf[len] = 0;
+
+    uint16_t crc = crc16(buf, maxLen);
+    buf[maxLen]     = crc >> 8;
+    buf[maxLen + 1] = crc & 0xFF;
+
+    return eeprom_write_multi(addr, buf, maxLen + 2);
+}
+
+bool eeprom_load_string(uint16_t addr, char* outStr, size_t maxLen) {
+    if (maxLen + 2 > 64) return false;
+
+    uint8_t buf[64] = {0};
+    if (!eeprom_read_multi(addr, buf, maxLen + 2)) return false;
+
+    uint16_t crc_calc   = crc16(buf, maxLen);
+    uint16_t crc_stored = (buf[maxLen] << 8) | buf[maxLen + 1];
+    if (crc_calc != crc_stored) return false;
+
+    memcpy(outStr, buf, maxLen);
+    outStr[maxLen - 1] = 0;
+    return outStr[0] != 0;
+}

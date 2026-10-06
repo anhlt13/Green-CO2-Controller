@@ -6,17 +6,17 @@
 
 static constexpr float SDP610_125PA_SCALE_FACTOR =  240.0f;
 
-bool readPressurePa(float* outPa)
+bool readPressurePa(std::shared_ptr<PicoI2C> i2c, float *outPa)
 {
     uint8_t triggerCmd = 0xF1;
-    int written = i2c_write_blocking(i2c1, SDP610_I2C_ADDR, &triggerCmd,1,false);
+    uint written = i2c->write(SDP610_I2C_ADDR, &triggerCmd, 1);
     if (written !=1)
     {
         return false;
     }
 
     uint8_t buf[2];
-    int readBytes = i2c_read_blocking(i2c1, SDP610_I2C_ADDR, buf, 2, false);
+    uint readBytes = i2c->read(SDP610_I2C_ADDR, buf, 2);
     if (readBytes !=2)
     {
         return false;

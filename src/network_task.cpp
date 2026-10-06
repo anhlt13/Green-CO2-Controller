@@ -2,12 +2,26 @@
 // Created by Tran Lan Anh on 29.9.2026.
 //
 #include "network_task.h"
+
+#include "EEPROM.h"
 #include "system_state.h"
 #include "IPStack.h"
 
 extern "C"
 {
     bool run_tls_client_test(const uint8_t *cert,size_t cert_len,const char *server,const char *request,int timeout,char *out_buf,size_t max_len);
+}
+
+static char ssidBuffer[EEPROM_SSID_MAX_LEN]     = {0};
+static char passwordBuffer[EEPROM_PASS_MAX_LEN] = {0};
+xTaskHandle networkTaskHandle = nullptr;
+
+static void loadCredentials()
+{
+    xSemaphoreTake(eepromMutex, portMAX_DELAY);
+    if (!eeprom_load_string(NETWORK_SSID_ADDR, ssidBuffer, EEPROM_SSID_MAX_LEN)) ssidBuffer[0] = 0;
+    if (!eeprom_load_string(NETWORK_PASS_ADDR, passwordBuffer, EEPROM_PASS_MAX_LEN)) passwordBuffer[0] = 0;
+    xSemaphoreGive(eepromMutex);
 }
 
 static void clearTalkBackCommands(const uint8_t *certificate)
@@ -156,8 +170,15 @@ void receiveFromThinkSpeak()
 
 void network_task(void *pvParameters)
 {
-    IPStack ipstack(SSID, PASSWORD);
-    ipstack.connect_to_wifi(SSID, PASSWORD);
+    loadCredentials();
+
+    IPStack ipstack(ssidBuffer, passwordBuffer);
+
+    if (ssidBuffer[0]) {
+        ipstack.connect_to_wifi(ssidBuffer, passwordBuffer);
+    } else {
+        printf("[Network] No WiFi config saved. Use 'set ssid', 'set password', then 'connect'.\n");
+    }
     while (true)
     {
         if (cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA) == CYW43_LINK_UP)
@@ -166,6 +187,14 @@ void network_task(void *pvParameters)
             receiveFromThinkSpeak();
         }
 
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        if (ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(5000)) > 0)
+        {
+            loadCredentials();
+            if (ssidBuffer[0]) {
+                ipstack.connect_to_wifi(ssidBuffer, passwordBuffer);
+            } else {
+                printf("[Network] SSID not set.\n");
+            }
+        }
     }
 }

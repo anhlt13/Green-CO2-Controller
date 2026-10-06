@@ -5,10 +5,13 @@
 #include "ui_task.h"
 #include "system_state.h"
 #include "encoder.h"
-#include "ssd1306.h"
+#include "ssd1306os.h"
 #include "EEPROM.h"
+#include "i2c_bus.h"
+#include "pressure_sensor.h"
 
 #include <cstdio>
+#include <cstring>   \
 
 enum UIScreen
 {
@@ -26,8 +29,11 @@ static const char *MENU_ITEMS[] =
 };
 
 static constexpr int MENU_ITEM_COUNT = 3;
+static char ssidBuffer[EEPROM_SSID_MAX_LEN]     = {0};
+static char passwordBuffer[EEPROM_PASS_MAX_LEN] = {0};
 
 static bool swPreviousReleased = true;
+
 
 static bool swPressedEdge(void)
 {
@@ -44,7 +50,7 @@ static bool swPressedEdge(void)
     return false;
 }
 
-static void drawMainScreen(ssd1306 &oled, const SharedState_t &state)
+static void drawMainScreen(ssd1306os &oled, const SharedState_t &state)
 {
     char line[32];
     oled.fill(0);
@@ -53,24 +59,27 @@ static void drawMainScreen(ssd1306 &oled, const SharedState_t &state)
     oled.text(line, 0, 0);
 
     snprintf(line, sizeof(line), "RH:  %.0f %%", state.relativeHumidity);
-    oled.text(line, 0, 10);
+    oled.text(line, 0, 8);
 
     snprintf(line, sizeof(line), "T:   %.1f C", state.temperature);
-    oled.text(line, 0, 20);
+    oled.text(line, 0, 16);
+
+    snprintf(line, sizeof(line), "Pres: %.1f Pa", state.pressure);
+    oled.text(line, 0, 24);
 
     snprintf(line, sizeof(line), "Fan: %u %%", state.fanSpeedPercent);
-    oled.text(line, 0, 30);
+    oled.text(line, 0, 32);
 
     snprintf(line, sizeof(line), "Valve: %s", state.valveIsOpen ? "OPEN" : "closed");
     oled.text(line, 0, 40);
 
     snprintf(line, sizeof(line), "Set: %.0f ppm", state.co2Setpoint);
-    oled.text(line, 0, 50);
+    oled.text(line, 0, 48);
 
     oled.show();
 }
 
-static void drawMenuScreen(ssd1306 &oled, int selectedIndex)
+static void drawMenuScreen(ssd1306os &oled, int selectedIndex)
 {
     oled.fill(0);
     oled.text("------MENU------",0,0);
@@ -83,7 +92,7 @@ static void drawMenuScreen(ssd1306 &oled, int selectedIndex)
     oled.show();
 }
 
-static void drawSetpointScreen(ssd1306 &oled, float pendingValue)
+static void drawSetpointScreen(ssd1306os &oled, float pendingValue)
 {
     char line[32];
     oled.fill(0);
@@ -95,11 +104,18 @@ static void drawSetpointScreen(ssd1306 &oled, float pendingValue)
     oled.show();
 }
 
-static void drawNetworkScreen(ssd1306 &oled)
+static void drawNetworkScreen(ssd1306os &oled, const char *ssid, const char *password)
 {
+    char line[48];
     oled.fill(0);
-    oled.text("Network Settings", 0, 0);
-    oled.text("Coming soon", 0, 20);
+    oled.text("Network Info", 0, 0);
+
+    snprintf(line, sizeof(line), "SSID: %s", (ssid[0] != 0) ? ssid : "(not set)");
+    oled.text(line, 0, 20);
+
+    snprintf(line, sizeof(line), "Pass: %s", (password[0] != 0) ? "****" : "(not set)");
+    oled.text(line, 0, 35);
+
     oled.text("Press: back", 0, 50);
     oled.show();
 }
@@ -108,12 +124,21 @@ void uiTaskFunction(void* param)
 {
     (void)param;
 
-    ssd1306 oled(i2c1);
+    ssd1306os oled(i2c1Bus);
     encoderInit();
 
     UIScreen screen = SCREEN_MAIN;
     int menuSelectedIndex = 0;
     float pendingSetpoint = 0.0f;
+
+    xSemaphoreTake(eepromMutex, portMAX_DELAY);
+    if (!eeprom_load_string(NETWORK_SSID_ADDR, ssidBuffer, EEPROM_SSID_MAX_LEN)) {
+        ssidBuffer[0] = 0;
+    }
+    if (!eeprom_load_string(NETWORK_PASS_ADDR, passwordBuffer, EEPROM_PASS_MAX_LEN)) {
+        passwordBuffer[0] = 0;
+    }
+    xSemaphoreGive(eepromMutex);
 
     xSemaphoreTake(eepromMutex, portMAX_DELAY);
     float loadedSetPoint;
@@ -218,6 +243,13 @@ void uiTaskFunction(void* param)
             break;
         }
 
+        float pressureValue;
+        if (readPressurePa(i2c1Bus, &pressureValue)) {
+            xSemaphoreTake(sharedStateMutex, portMAX_DELAY);
+            systemState.pressure = pressureValue;
+            xSemaphoreGive(sharedStateMutex);
+        }
+
         TickType_t now = xTaskGetTickCount();
         if (hasEvent == pdTRUE || swPressed || (now-lastDrawTime)>pdMS_TO_TICKS(500))
         {
@@ -240,7 +272,7 @@ void uiTaskFunction(void* param)
                 drawSetpointScreen(oled,pendingSetpoint);
                 break;
             case SCREEN_NETWORK:
-                drawNetworkScreen(oled);
+                drawNetworkScreen(oled, ssidBuffer, passwordBuffer);
                 break;
             }
             xSemaphoreGive(i2c1Mutex);

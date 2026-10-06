@@ -5,7 +5,9 @@
 #ifndef RP2040_FREERTOS_IRQ_NETWORK_TASK_H
 #define RP2040_FREERTOS_IRQ_NETWORK_TASK_H
 
+#include "FreeRTOS.h"
 #include "IPStack.h"
+#include "task.h"
 
 #define API_KEY  "GRG53RK0ZOGSR62B"
 #define TALKBACK_ID 57933
@@ -42,4 +44,5 @@ MrY=\n\
 #define SSID "Test"
 #define PASSWORD "1234578"
 void network_task(void *pvParameters);
+extern xTaskHandle networkTaskHandle;
 #endif //RP2040_FREERTOS_IRQ_NETWORK_TASK_H

@@ -30,10 +30,10 @@ add_executable(${ProjectName}
         display/framebuf.h
         display/mono_vlsb.cpp
         display/mono_vlsb.h
-       display/ssd1306.cpp
-        display/ssd1306.h
-#        display/ssd1306os.h
-#        display/ssd1306os.cpp
+#        display/ssd1306.cpp
+#        display/ssd1306.h
+        display/ssd1306os.h
+        display/ssd1306os.cpp
         sensor_task.cpp
         sensor_task.h
         ui_task.cpp
@@ -46,6 +46,9 @@ add_executable(${ProjectName}
         EEPROM.cpp
         network_task.cpp
         ipstack/IPStack.cpp
+        i2c_bus.cpp
+        i2c_bus.h
+        console_task.cpp
 )
 
 target_include_directories(${ProjectName} PRIVATE
