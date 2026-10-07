@@ -91,10 +91,10 @@ void sendToThinkSpeak()
     bool pass= run_tls_client_test(certificate, sizeof(certificate), TLS_CLIENT_SERVER, request, TLS_CLIENT_TIMEOUT_SECS, NULL, 0);
     if (pass)
     {
-        printf("Test passed\n");
+        printf("TLS passed\n");
     }else
     {
-        printf("Test failed\n");
+        printf("TLS failed\n");
     }
 }
 
@@ -112,7 +112,7 @@ void receiveFromThinkSpeak()
     bool talkBackReceivePass = run_tls_client_test(certificate, sizeof(certificate), TLS_CLIENT_SERVER, talkBackRequest, TLS_CLIENT_TIMEOUT_SECS, http_response_buf, sizeof(http_response_buf));
         if (talkBackReceivePass)
         {
-            printf("TalkBack request completed. Parsing response...\n");
+            //printf("TalkBack request completed. Parsing response...\n");
             char *body = strstr(http_response_buf, "\r\n\r\n");
 
             if (body != NULL)
@@ -202,19 +202,14 @@ void network_task(void *pvParameters)
 
     while (true)
     {
-        if (cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA) == CYW43_LINK_UP)
-        {
-            sendToThinkSpeak();
-            receiveFromThinkSpeak();
-        }
-
         uint32_t command;
 
-        if (xTaskNotifyWait(0,0,&command,pdMS_TO_TICKS(5000)) == pdTRUE)
+        if (xTaskNotifyWait(0, 0, &command, pdMS_TO_TICKS(100)) == pdTRUE)
         {
             if (command == NETWORK_CONNECT)
             {
                 loadCredentials();
+
                 if (ssidBuffer[0])
                 {
                     printf("[Network] Connecting with saved configuration...\n");
@@ -228,11 +223,26 @@ void network_task(void *pvParameters)
             else if (command == NETWORK_DISCONNECT)
             {
                 printf("[Network] Disconnecting WiFi...\n");
-
                 ipstack.disconnect_to_wifi();
+                sleep_ms(500);
 
-                printf("[Network] WiFi disconnected.\n");
+                int status = cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA);
+                printf("[Network] WiFi status after disconnect: %d\n", status);
+                if (status != CYW43_LINK_UP)
+                {
+                    printf("[Network] WiFi disconnected.\n");
+                }
+                else
+                {
+                    printf("[Network] WiFi is still connected.\n");
+                }
             }
+        }
+
+        if (cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA) == CYW43_LINK_UP)
+        {
+            sendToThinkSpeak();
+            receiveFromThinkSpeak();
         }
     }
 }

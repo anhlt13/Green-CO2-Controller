@@ -88,7 +88,7 @@ void controlTaskFunction(void* param)
                 valveState = VALVE_IDLE;
             }
         }
-        else if (fanBooster)
+        else if (fanBooster &&  co2Now <= setpointNow)
         {
             requestFanSpeed(FAN_SPEED_NORMAL);
             fanBooster = false;

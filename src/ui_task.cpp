@@ -258,6 +258,14 @@ void uiTaskFunction(void* param)
             xSemaphoreTake(sharedStateMutex, portMAX_DELAY);
             snapshot = systemState;
             xSemaphoreGive(sharedStateMutex);
+            xSemaphoreTake(eepromMutex, portMAX_DELAY);
+            if (!eeprom_load_string(NETWORK_SSID_ADDR, ssidBuffer, EEPROM_SSID_MAX_LEN)) {
+                ssidBuffer[0] = 0;
+            }
+            if (!eeprom_load_string(NETWORK_PASS_ADDR, passwordBuffer, EEPROM_PASS_MAX_LEN)) {
+                passwordBuffer[0] = 0;
+            }
+            xSemaphoreGive(eepromMutex);
 
             xSemaphoreTake(i2c1Mutex, portMAX_DELAY);
             switch (screen)

@@ -143,7 +143,7 @@ static void tls_client_dns_found(const char* hostname, const ip_addr_t *ipaddr, 
 {
     if (ipaddr)
     {
-        printf("DNS resolving complete\n");
+        //printf("DNS resolving complete\n");
         tls_client_connect_to_server_ip(ipaddr, (TLS_CLIENT_T *) arg);
     }
     else
@@ -173,7 +173,7 @@ static bool tls_client_open(const char *hostname, void *arg) {
     /* Set SNI */
     mbedtls_ssl_set_hostname(altcp_tls_context(state->pcb), hostname);
 
-    printf("resolving %s\n", hostname);
+    //printf("resolving %s\n", hostname);
 
     // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
     // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll

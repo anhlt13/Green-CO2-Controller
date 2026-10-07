@@ -74,11 +74,11 @@ void sensor_task(void* parameters)
                }
                fanSpeedRegisterValue = requestedFanSpeedPercent * 10;
                fan_speed.write(fanSpeedRegisterValue);
-               printf("fan speed request = %u%%, MIO value = %u\n", requestedFanSpeedPercent, fanSpeedRegisterValue );
+               printf("[FAN]fan speed request = %u%%, MIO value = %u\n", requestedFanSpeedPercent, fanSpeedRegisterValue );
                if (sharedStateMutex != nullptr)
                {
                    xSemaphoreTake(sharedStateMutex, portMAX_DELAY);
-                   systemState.fanSpeedPercent = fanSpeedRegisterValue;
+                   systemState.fanSpeedPercent = requestedFanSpeedPercent;
                    xSemaphoreGive(sharedStateMutex);
                }
            }
